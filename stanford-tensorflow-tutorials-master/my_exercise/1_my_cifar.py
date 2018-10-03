@@ -23,7 +23,7 @@ if K.backend() == 'tensorflow':
 import os
 os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
 
-import helper
+from helper import plot_model_history, write_log_file
 
 (train_features, train_labels), (test_features, test_labels) = cifar10.load_data()
 num_train, img_channels, img_rows, img_cols = train_features.shape
@@ -93,7 +93,8 @@ model.add(Activation('relu'))
 model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 
-
+output_dir = "/home/nebula-li/Documents/cs20_data/"
+model_image_name = output_dir +
 # Plot model to image file
 plot_model(model, to_file="CNN_cifar_model.png", show_shapes=True)
 
