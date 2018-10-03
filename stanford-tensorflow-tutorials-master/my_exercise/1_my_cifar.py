@@ -27,7 +27,7 @@ from helper import plot_model_history, write_log_file
 
 (train_features, train_labels), (test_features, test_labels) = cifar10.load_data()
 num_train, img_channels, img_rows, img_cols = train_features.shape
-num_test, _, _, _ =test_features.shape
+num_test, _, _, _ = test_features.shape
 num_classes = len(np.unique(train_labels))
 
 print ("Training X:", train_features.shape)
@@ -94,13 +94,17 @@ model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 
 output_dir = "/home/nebula-li/Documents/cs20_data/"
-model_image_name = output_dir +
+model_image_name = output_dir + "model/1_my_cifar.png"
+model_name = output_dir + "weights/1_my_cifar.h5"
+training_history_image = output_dir + "log/1_my_cifar.png"
+training_result = output_dir + "result/1_my_cifar.log"
+
 # Plot model to image file
-plot_model(model, to_file="CNN_cifar_model.png", show_shapes=True)
+plot_model(model, to_file=model_image_name, show_shapes=True)
 
 # Set callback functions to early stop training and save the best model so far
 early_Stopper = EarlyStopping(monitor='val_acc', patience=50, min_delta=0,mode='auto')
-model_check_point = ModelCheckpoint(filepath='1_my_cifar_model.h5', monitor='val_acc', save_best_only=True)
+model_check_point = ModelCheckpoint(filepath=model_name, monitor='val_acc', save_best_only=True)
 
 # Compile the model
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -116,17 +120,14 @@ model_info = model.fit(train_X, train_y,
 end = time.time()
 
 # plot model history
-plot_model_history(model_info, tofile="1_my_cifar_train_history.png")
+plot_model_history(model_info, tofile=training_history_image)
 
 
 print ("Model took %0.2f seconds to train"%(end - start))
 
 del model
 # load best model
-best_model = load_model("1_my_cifar_model.h5")
-
-# compute test accuracy
-print ("Accuracy on test data is: %0.2f"%accuracy(test_X, test_y, best_model))
+best_model = load_model(model_name)
 
 # Evaluate model on test data
 score = best_model.evaluate(test_X, test_y, verbose=0)
@@ -139,9 +140,9 @@ print ("test accuracy:", score[1])
 min_loss, min_val_loss = min(model_info.history['loss']), min(model_info.history['val_loss'])
 max_acc, max_val_acc = max(model_info.history['acc']), max(model_info.history['val_acc'])
 # write these values to log file
-write_log_file("min_loss", min_loss, tofile="1_my_cifar.log")
-write_log_file("min_val_loss", min_val_loss, tofile="1_my_cifar.log")
-write_log_file("max_acc", max_acc, tofile="1_my_cifar.log")
-write_log_file("max_val_acc", max_val_acc, tofile="1_my_cifar.log")
-write_log_file("test loss", score[0], tofile="1_my_cifar.log")
-write_log_file("test accuracy", score[1], tofile="1_my_cifar.log")
+write_log_file("min_loss", min_loss, tofile=training_result)
+write_log_file("min_val_loss", min_val_loss, tofile=training_result)
+write_log_file("max_acc", max_acc, tofile=training_result)
+write_log_file("max_val_acc", max_val_acc, tofile=training_result)
+write_log_file("test loss", score[0], tofile=training_result)
+write_log_file("test accuracy", score[1], tofile=training_result)
