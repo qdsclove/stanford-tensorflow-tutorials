@@ -67,6 +67,7 @@ def plot_model_history(model_history, tofile='history.png'):
     axs[0].set_xlabel('Epoch')
     axs[0].set_xticks(np.arange(1,len(model_history.history['acc'])+1),len(model_history.history['acc'])/10)
     axs[0].legend(['train', 'val'], loc='best')
+
     # summarize history for loss
     axs[1].plot(range(1,len(model_history.history['loss'])+1),model_history.history['loss'])
     axs[1].plot(range(1,len(model_history.history['val_loss'])+1),model_history.history['val_loss'])
@@ -87,6 +88,10 @@ def accuracy(test_x, test_y, model):
     accuracy = float(num_correct)/result.shape[0]
     return (accuracy*100)
 
+def write_log_file(item, value, tofile="train_test_acc.log"):
+    f = open( tofile, "a")
+    f.write(item + ": " + str(value) + "\n" )
+
 # CNN Model
 model = Sequential()
 model.add(Conv2D(48, (3, 3), padding='same',input_shape=train_X.shape[1:]))
@@ -97,7 +102,7 @@ model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Conv2D(96, (3, 3), border_mode='same'))
+model.add(Conv2D(96, (3, 3), padding='same'))
 model.add(Activation('relu'))
 
 model.add(Conv2D(96, (3, 3)))
@@ -105,7 +110,7 @@ model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Conv2D(192, (3, 3), border_mode='same'))
+model.add(Conv2D(192, (3, 3), padding='same'))
 model.add(Activation('relu'))
 
 model.add(Conv2D(192, (3, 3)))
@@ -127,10 +132,8 @@ model.add(Dense(num_classes, activation='softmax'))
 plot_model(model, to_file="CNN_cifar_model.png", show_shapes=True)
 
 # Set callback functions to early stop training and save the best model so far
-early_Stopper = EarlyStopping(monitor='val_loss', patience=50, min_delta=0,mode='auto')
-model_check_point = ModelCheckpoint(filepath='best_model_cifar.h5', monitor='val_loss', save_best_only=True)
-checkpoint = ModelCheckpoint('model-{epoch:03d}.h5', verbose=1, monitor='val_loss',save_best_only=True, mode='auto')
-
+early_Stopper = EarlyStopping(monitor='val_acc', patience=50, min_delta=0,mode='auto')
+model_check_point = ModelCheckpoint(filepath='1_my_cifar_model.h5', monitor='val_acc', save_best_only=True)
 
 # Compile the model
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -139,20 +142,21 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 # Train the model
 start = time.time()
 model_info = model.fit(train_X, train_y,
-                       batch_size=128, nb_epoch=200,
+                       batch_size=128, nb_epoch=300,
                        validation_data = (test_X, test_y),
                        verbose=2,
                        callbacks=[ model_check_point])
 end = time.time()
 
 # plot model history
-plot_model_history(model_info, tofile="cifar_train_history.png")
+plot_model_history(model_info, tofile="1_my_cifar_train_history.png")
+
 
 print ("Model took %0.2f seconds to train"%(end - start))
 
 del model
 # load best model
-best_model = load_model("best_model_cifar.h5")
+best_model = load_model("1_my_cifar_model.h5")
 
 # compute test accuracy
 print ("Accuracy on test data is: %0.2f"%accuracy(test_X, test_y, best_model))
@@ -162,3 +166,15 @@ score = best_model.evaluate(test_X, test_y, verbose=0)
 
 print ("test loss:", score[0])
 print ("test accuracy:", score[1])
+
+########## log
+
+min_loss, min_val_loss = min(model_info.history['loss']), min(model_info.history['val_loss'])
+max_acc, max_val_acc = max(model_info.history['acc']), max(model_info.history['val_acc'])
+# write these values to log file
+write_log_file("min_loss", min_loss, tofile="1_my_cifar.log")
+write_log_file("min_val_loss", min_val_loss, tofile="1_my_cifar.log")
+write_log_file("max_acc", max_acc, tofile="1_my_cifar.log")
+write_log_file("max_val_acc", max_val_acc, tofile="1_my_cifar.log")
+write_log_file("test loss", score[0], tofile="1_my_cifar.log")
+write_log_file("test accuracy", score[1], tofile="1_my_cifar.log")

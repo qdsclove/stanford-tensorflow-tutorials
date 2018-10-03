@@ -2,7 +2,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers import Activation, Flatten, Dense, Dropout
 from keras.layers.normalization import BatchNormalization
@@ -87,6 +87,11 @@ def accuracy(test_x, test_y, model):
     accuracy = float(num_correct)/result.shape[0]
     return (accuracy*100)
 
+def write_log_file(item, value, tofile="train_test_acc.log"):
+    f = open( tofile, "a")
+    f.write(item + ": " + str(value) + "\n" )
+
+
 # CNN Model
 model = Sequential()
 model.add(Conv2D(48, (3, 3), padding='same',input_shape=train_X.shape[1:]))
@@ -130,11 +135,11 @@ model.add(Dense(num_classes, activation='softmax'))
 
 
 # Plot model to image file
-plot_model(model, to_file="CNN_cifar_model.png", show_shapes=True)
+plot_model(model, to_file="1_my_cifar_2_model.png", show_shapes=True)
 
 # Set callback functions to early stop training and save the best model so far
 early_Stopper = EarlyStopping(monitor='val_acc', patience=50, min_delta=0,mode='auto')
-model_check_point = ModelCheckpoint(filepath='best_model_cifar.h5', monitor='val_acc', save_best_only=True)
+model_check_point = ModelCheckpoint(filepath='1_my_cifar_2.h5', monitor='val_acc', save_best_only=True)
 
 
 # Compile the model
@@ -144,24 +149,37 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 # Train the model
 start = time.time()
 model_info = model.fit(train_X, train_y,
-                       batch_size=128, nb_epoch=200,
+                       batch_size=128, nb_epoch=300,
                        validation_data = (test_X, test_y),
                        verbose=2,
-                       callbacks=[early_Stopper, model_check_point])
+                       callbacks=[model_check_point])
 end = time.time()
 
 # plot model history
-plot_model_history(model_info, tofile="cifar_train_history.png")
+plot_model_history(model_info, tofile="1_my_cifar_2.png")
 
 print ("Model took %0.2f seconds to train"%(end - start))
 
 # load best model
+del model
 
-# compute test accuracy
-print ("Accuracy on test data is: %0.2f"%accuracy(test_X, test_y, model))
+best_model = load_model("1_my_cifar_2.h5")
 
 # Evaluate model on test data
-score = model.evaluate(test_X, test_y, verbose=0)
+score = best_model.evaluate(test_X, test_y, verbose=0)
 
 print ("test loss:", score[0])
 print ("test accuracy:", score[1])
+
+
+########## log
+log_file_name = "1_my_cifar_2.log"
+min_loss, min_val_loss = min(model_info.history['loss']), min(model_info.history['val_loss'])
+max_acc, max_val_acc = max(model_info.history['acc']), max(model_info.history['val_acc'])
+# write these values to log file
+write_log_file("min_loss", min_loss, tofile=log_file_name)
+write_log_file("min_val_loss", min_val_loss, tofile=log_file_name)
+write_log_file("max_acc", max_acc, tofile=log_file_name)
+write_log_file("max_val_acc", max_val_acc, tofile=log_file_name)
+write_log_file("test loss", score[0], tofile=log_file_name)
+write_log_file("test accuracy", score[1], tofile=log_file_name)
