@@ -1,6 +1,0 @@
-min_loss: 0.22152184682846068
-min_val_loss: 0.5560572178840637
-max_acc: 0.9390200000190735
-max_val_acc: 0.8398
-test loss: 0.7278107153654099
-test accuracy: 0.8398

@@ -23,6 +23,8 @@ if K.backend() == 'tensorflow':
 import os
 os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
 
+import helper
+
 (train_features, train_labels), (test_features, test_labels) = cifar10.load_data()
 num_train, img_channels, img_rows, img_cols = train_features.shape
 num_test, _, _, _ =test_features.shape
@@ -55,42 +57,6 @@ test_X = test_features.astype('float32')/255
 train_y = np_utils.to_categorical(train_labels, num_classes)
 test_y = np_utils.to_categorical(test_labels, num_classes)
 
-
-# plot model accuracy and loss
-def plot_model_history(model_history, tofile='history.png'):
-    fig, axs = plt.subplots(1,2,figsize=(15,5))
-    # summarize history for accuracy
-    axs[0].plot(range(1,len(model_history.history['acc'])+1),model_history.history['acc'])
-    axs[0].plot(range(1,len(model_history.history['val_acc'])+1),model_history.history['val_acc'])
-    axs[0].set_title('Model Accuracy')
-    axs[0].set_ylabel('Accuracy')
-    axs[0].set_xlabel('Epoch')
-    axs[0].set_xticks(np.arange(1,len(model_history.history['acc'])+1),len(model_history.history['acc'])/10)
-    axs[0].legend(['train', 'val'], loc='best')
-
-    # summarize history for loss
-    axs[1].plot(range(1,len(model_history.history['loss'])+1),model_history.history['loss'])
-    axs[1].plot(range(1,len(model_history.history['val_loss'])+1),model_history.history['val_loss'])
-    axs[1].set_title('Model Loss')
-    axs[1].set_ylabel('Loss')
-    axs[1].set_xlabel('Epoch')
-    axs[1].set_xticks(np.arange(1,len(model_history.history['loss'])+1),len(model_history.history['loss'])/10)
-    axs[1].legend(['train', 'val'], loc='best')
-    plt.savefig(tofile)
-    #plt.show()
-
-# compute test accuracy
-def accuracy(test_x, test_y, model):
-    result = model.predict(test_x)
-    predicted_class = np.argmax(result, axis=1)
-    true_class = np.argmax(test_y, axis=1)
-    num_correct = np.sum(predicted_class == true_class)
-    accuracy = float(num_correct)/result.shape[0]
-    return (accuracy*100)
-
-def write_log_file(item, value, tofile="train_test_acc.log"):
-    f = open( tofile, "a")
-    f.write(item + ": " + str(value) + "\n" )
 
 # CNN Model
 model = Sequential()
